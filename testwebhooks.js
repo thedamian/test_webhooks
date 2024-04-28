@@ -15,6 +15,9 @@ app.use(morgan('combined'))
 
 
 const process = (type, req,res) => {
+
+	const endpoint = req.path;
+
 	console.log(" -------------------------- New " + type + " request --------------------------")
 	console.log("req.headers",req.headers);
 	if (req.params) {
@@ -27,27 +30,24 @@ const process = (type, req,res) => {
 	if (req.body) {
 		console.log("body:",req.body);
 	}
-	res.send("Thank you! Success");
+	
+	if (req.is('application/json')) {
+		res.json({
+			"message":`Successfully Accepted a post to ${endpoint}`,
+			"body:": req.body ?? "No Body",
+			"headers": req.headers,
+			})
+
+	} else {
+		res.send("Thank you! Success");
+	}
+
 	console.log("-------------------------- END -------------------------- \n")
 }
 
-app.get("/",(req,res)=> {
-    process("GET",req,res);
+app.use((req, res, next) => {
+	process(req.method,req,res);
 });
-
-app.get("/:path*",(req,res)=> {
-	process("GET",req,res);
-});
-
-app.post("/",(req,res)=> {
-	console.log("body",req.body)
-    process("POST",req,res);
-});
-
-app.post("/:path*",(req,res)=> {
-	process("POST",req,res);
-});
-
 
 
 var server = http.createServer(app); 
