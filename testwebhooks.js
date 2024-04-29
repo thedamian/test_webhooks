@@ -16,30 +16,44 @@ app.use(morgan('combined'))
 
 const process = (type, req,res) => {
 
-	const endpoint = req.path;
+	console.log(`-------------------------- New ${type} request -------------------------- \n`)
 
-	console.log(" -------------------------- New " + type + " request --------------------------")
-	console.log("req.headers",req.headers);
-	if (req.params) {
-	const path = req.params.path;
-	console.log("path:",path);
+	let reply = {"message":`Successfully Accepted a ${type} request to ${req.url}`};
+	
+	if (req.headers) {
+		 reply.url = req.url.split("?")[0];
 	}
-	if (req.query) {
-		console.log("QueryString:", req.query)
+	console.log("req.query",req.query)
+	if (Object.keys(req.query).length > 0) {
+		reply.query = req.query
 	}
 	if (req.body) {
-		console.log("body:",req.body);
+		reply.body = req.body;
+	}
+	if (req.headers) {
+		reply.headers = req.headers;
 	}
 	
-	if (req.is('application/json')) {
-		res.json({
-			"message":`Successfully Accepted a post to ${endpoint}`,
-			"body:": req.body ?? "No Body",
-			"headers": req.headers,
-			})
+	let replyText = "";	
+	for (let [key, value] of Object.entries(reply)) {
+		if (value) {
+			if (key == "body" || key == "headers") {
+				replyText += key + ": <BR />\n"
+				for (let [key2, value2] of Object.entries(reply[key])) {
+					replyText += `   ${key2}: ${JSON.stringify(value2)}<BR />\n`
+				}
+			} else {
+				replyText += `${key}: ${JSON.stringify(value)}<BR />\n`
+			}
+		}
+	}
+	
+	console.log(replyText.replaceAll("<BR />",""))
 
+	if (req.is('application/json')) {
+		res.json(reply)
 	} else {
-		res.send("Thank you! Success");
+		res.send(replyText)
 	}
 
 	console.log("-------------------------- END -------------------------- \n")
